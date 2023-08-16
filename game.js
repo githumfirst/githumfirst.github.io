@@ -36,6 +36,8 @@ function createBoard() {
             board.appendChild(cell);
         }
     }
+
+    startGame();
 }
 
 // Function to place soldiers on the board for each army
@@ -68,19 +70,92 @@ function placeAISoldiers(aiArmy) {
 }
 
 // Function to simulate a battle between two soldiers
-function battle(attacker, defender) {
-    if (attacker.rank === defender.rank) {
-        attacker.isAlive = false;
-        defender.isAlive = false;
-    } else if (attacker.rank === 7 && defender.rank === 8) { // MP defeats 대통령
-        defender.isAlive = false;
-    } else if (attacker.rank === 8 && defender.rank === 7) { // 대통령 defeats MP
-        attacker.isAlive = false;
-    } else if (attacker.rank > defender.rank) {
-        defender.isAlive = false;
-    } else {
-        attacker.isAlive = false;
+// function battle(attacker, defender) {
+//     console.log(attacker.rank);
+//     console.log(defender.rank);
+//     if (attacker.rank === defender.rank) {
+//         attacker.isAlive = false;
+//         defender.isAlive = false;
+//     } else if (attacker.rank === 7 && defender.rank === 8) { // MP defeats 대통령
+//         defender.isAlive = false;
+//     } else if (attacker.rank === 8 && defender.rank === 7) { // 대통령 defeats MP
+//         attacker.isAlive = false;
+//     } else if (attacker.rank > defender.rank) {
+//         defender.isAlive = false;
+//     } else {
+//         attacker.isAlive = false;
+//     }
+// }
+
+function battle(userRank, aiRank) {
+    if (userRank == aiRank) {
+        showDraw();
+        return 'draw';
     }
+
+    if (userRank == 7 && aiRank != 8) {
+        showAiWin();
+        return 'ai';
+    }
+
+    if (userRank != 8 && aiRank == 7) {
+        showUserWin();
+        return 'user';
+    }
+
+    if (userRank > aiRank) {
+        showUserWin();        
+        return 'user';
+    }
+
+    if (userRank < aiRank) {
+        showAiWin();
+        return 'user';
+    }
+}
+
+
+// Function to show the "Thinking..." sign
+function showThinkingSign() {
+    const thinkingSign = document.getElementById('thinkingSign');
+    thinkingSign.style.display = 'block';
+}
+
+// Function to hide the "Thinking..." sign
+function hideThinkingSign() {
+    const thinkingSign = document.getElementById('thinkingSign');
+    thinkingSign.style.display = 'none';
+}
+
+function showDraw() {
+    const drawSign = document.getElementById('drawSign');
+    drawSign.style.display = 'block';
+}
+
+function showUserWin() {
+    const userWinSign = document.getElementById('userWinSign');
+    userWinSign.style.display = 'block';
+}
+
+function showAiWin() {
+    const aiWinSign = document.getElementById('aiWinSign');
+    aiWinSign.style.display = 'block';
+}
+
+// Function to hide the "win/loss..." sign
+function hideDraw() {
+    const drawSign = document.getElementById('drawSign');
+    drawSign.style.display = 'none';
+}
+
+function hideUserWin() {
+    const userWinSign = document.getElementById('userWinSign');
+    userWinSign.style.display = 'none';
+}
+
+function hideAiWin() {
+    const aiWinSign = document.getElementById('aiWinSign');
+    aiWinSign.style.display = 'none';
 }
 
 // Function to handle soldier selection
@@ -127,20 +202,38 @@ function removeClickListeners() {
 }
 
 // Function to check if two soldiers are adjacent
-function areAdjacent(cell1, cell2) {
-    const row1 = parseInt(cell1.id.split('_')[1]);
-    const col1 = parseInt(cell1.id.split('_')[2]);
-    const row2 = parseInt(cell2.id.split('_')[1]);
-    const col2 = parseInt(cell2.id.split('_')[2]);
+// function areAdjacent(cell1, cell2) {
+//     const row1 = parseInt(cell1.id.split('_')[1]);
+//     const col1 = parseInt(cell1.id.split('_')[2]);
+//     const row2 = parseInt(cell2.id.split('_')[1]);
+//     const col2 = parseInt(cell2.id.split('_')[2]);
 
-    console.log("Cell 1:", row1, col1);
-    console.log("Cell 2:", row2, col2);
+//     console.log("Cell 1:", row1, col1);
+//     console.log("Cell 2:", row2, col2);
 
-    // Check if the two soldiers are in the same row and have adjacent columns or are in the same column and have adjacent rows
-    const adjacent = (row1 === row2 && Math.abs(col1 - col2) === 1) || (col1 === col2 && Math.abs(row1 - row2) === 1);
-    console.log("Are adjacent?", adjacent);
-    return adjacent;
-}
+//     // Check if the two soldiers are in the same row and have adjacent columns or are in the same column and have adjacent rows
+//     const adjacent = (row1 === row2 && Math.abs(col1 - col2) === 1) || (col1 === col2 && Math.abs(row1 - row2) === 1);
+//     console.log("Are adjacent?", adjacent);
+//     return adjacent;
+// }
+
+function findAdjacentAiSoldiers(aiSoldiers, selectedSoldier) {
+    const selectedId = selectedSoldier.id;
+    const selectedCoords = selectedId.match(/cell_(\d+)_(\d+)/).slice(1, 3).map(Number);
+  
+    const adjacentSoldiers = aiSoldiers.filter(soldier => {
+      const soldierId = soldier.id;
+      const soldierCoords = soldierId.match(/cell_(\d+)_(\d+)/).slice(1, 3).map(Number);
+  
+      const rowDiff = Math.abs(selectedCoords[0] - soldierCoords[0]);
+      const colDiff = Math.abs(selectedCoords[1] - soldierCoords[1]);
+  
+      // Soldiers are adjacent if they are in the same row or column and have a difference of 1 in the other dimension
+      return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+    });
+  
+    return adjacentSoldiers;
+  }
 
 // Function to handle the attack
 function boom() {
@@ -165,13 +258,28 @@ function boom() {
     // Get the current row and column of the soldier
     const row = parseInt(soldierCell.id.split('_')[1]);
     const col = parseInt(soldierCell.id.split('_')[2]);
-    console.log(row);
-    console.log(col);
 
+    // Get the Army and Rank of User
+    const userSoldierContent = soldierCell.innerHTML;
+    const army = userSoldierContent.split('-')[0];
+    const cleanArmy = army.replace(" ", "");
+    const userSoldierRank = userSoldierContent.split('-')[1];
+    const cleanRank = userSoldierRank.replace(" ", "");
+
+    // convert rank to Number
+    let userRankNumber = 0;
+    userRankNumber = rankToNumber(cleanRank);
+    
+    // build UserArmy for battle function
+   
+    // const selectedUserSoldier = userArmy.find(soldier => soldier.rank === cleanRank);
+    let fightingUserSoldier = userArmy.find(soldier => soldier.rank === userRankNumber);
+    
     // const selectedUserSoldier = userArmy.find(soldier => soldier.rank === selectedUserSoldierRank);
 
     // Find adjacent AI soldiers
-    const adjacentAISoldiers = aiSoldiers.filter(aiSoldier => areAdjacent(selectedSoldier, aiSoldier));
+    // const adjacentAISoldiers = aiSoldiers.filter(aiSoldier => areAdjacent(fightingUserSoldier, aiSoldier));
+    const adjacentAISoldiers = findAdjacentAiSoldiers(aiSoldiers, selectedSoldier);
 
     if (adjacentAISoldiers.length === 0) {
         alert("Cannot attack. Your soldier is not in contact with any opponent's soldier.");
@@ -179,14 +287,51 @@ function boom() {
     } else if (adjacentAISoldiers.length === 1) {
         // Only one adjacent AI soldier, attack without asking
         const aiSoldierCell = adjacentAISoldiers[0];
-        const aiSoldierRank = parseInt(aiSoldierCell.getAttribute('data-rank'));
-        const aiSoldier = aiArmy.find(soldier => soldier.rank === aiSoldierRank);
 
-        battle(selectedUserSoldier, aiSoldier);
+        // Get rank and army of AI
+        const aiSoldierContent = aiSoldierCell.innerHTML;
+        const aiArmyID = aiSoldierContent.split('-')[0];
+        const cleanAiArmy = aiArmyID.replace(" ", "");
+        const aiRank = aiSoldierContent.split('-')[1];
+        const cleanAiRank = aiRank.replace(" ", "");
+        
+        // convert rank to Number
+        let aiRankNumber = 0;
+        aiRankNumber = rankToNumber(cleanAiRank);
+        // const aiSoldierRank = parseInt(aiSoldierCell.getAttribute('data-rank'));
+        const fightingAiSoldier = aiArmy.find(soldier => soldier.rank === aiRankNumber);
+        
+        
+        let result = battle(userRankNumber, aiRankNumber);        
+              
+        // winner is user, then remove ai soldier
+        if (result == 'user') {
+            aiSoldierCell.style.backgroundColor = '';
+            aiSoldierCell.innerHTML = '';
+            aiSoldierCell = null;
+
+            hideUserWin();
+        }
+
+        // winner is A.I, then remove User soldier
+        if (result == 'ai') {
+            soldierCell.style.backgroundColor = '';
+            soldierCell.innerHTML = '';
+            soldierCell = null;
+
+            hideAiWin();
+        }
+
+        // winner is A.I, then remove User soldier
+        if (result == 'draw') {
+            
+            hideDraw();
+        }
+        
 
         // Update the soldier display on the board after the battle
-        updateSoldierDisplay(selectedSoldier, selectedUserSoldier);
-        updateSoldierDisplay(aiSoldierCell, aiSoldier);
+        // updateSoldierDisplay(selectedSoldier, selectedUserSoldier);
+        // updateSoldierDisplay(aiSoldierCell, aiSoldier);
     } else {
         // Multiple adjacent AI soldiers, ask the user which one to attack
         const attackOptions = adjacentAISoldiers.map(aiSoldierCell => {
@@ -211,6 +356,7 @@ function boom() {
         const selectedAISoldierCell = adjacentAISoldiers[selectedAIIndex];
         const selectedAISoldierRank = parseInt(selectedAISoldierCell.getAttribute('data-rank'));
         const selectedAISoldier = aiArmy.find(soldier => soldier.rank === selectedAISoldierRank);
+        console.log(selectedAISoldier);
 
         battle(selectedUserSoldier, selectedAISoldier);
 
@@ -225,21 +371,22 @@ function boom() {
     } else {
         // Allow the player to move again (player's turn)
         playerTurn();
-    }
+        return;
+    }    
 }
 
 
 // Function to update the soldier display on the board after the battle
-function updateSoldierDisplay(cell, soldier) {
-    if (soldier.isAlive) {
-        cell.textContent = `${cell.getAttribute('data-army')} - ${rankNames[soldier.rank - 1]}`;
-        cell.setAttribute('data-rank', soldier.rank); // Add this line
-    } else {
-        cell.textContent = '';
-        cell.removeAttribute('data-army'); // Remove this line if present
-        cell.removeAttribute('data-rank'); // Add this line
-    }
-}
+// function updateSoldierDisplay(cell, soldier) {
+//     if (soldier.isAlive) {
+//         cell.textContent = `${cell.getAttribute('data-army')} - ${rankNames[soldier.rank - 1]}`;
+//         cell.setAttribute('data-rank', soldier.rank); // Add this line
+//     } else {
+//         cell.textContent = '';
+//         cell.removeAttribute('data-army'); // Remove this line if present
+//         cell.removeAttribute('data-rank'); // Add this line
+//     }
+// }
 
 // Function to handle soldier movement
 function move(direction) {
@@ -323,18 +470,6 @@ function move(direction) {
 function isSoldierPresent(targetRow, targetCol) {
     const targetCell = document.getElementById(`cell_${targetRow}_${targetCol}`);
     return targetCell.textContent !== '';
-}
-
-// Function to show the "Thinking..." sign
-function showThinkingSign() {
-    const thinkingSign = document.getElementById('thinkingSign');
-    thinkingSign.style.display = 'block';
-}
-
-// Function to hide the "Thinking..." sign
-function hideThinkingSign() {
-    const thinkingSign = document.getElementById('thinkingSign');
-    thinkingSign.style.display = 'none';
 }
 
 // Function to handle the opponent player's turn (AI move)
@@ -548,8 +683,8 @@ function moveAI(aiSoldierCell, aiDirection) {
         } else {
             // If the target cell is occupied by an opponent soldier, perform a battle
             battle(aiSoldier, aiArmy.find(s => s.row === targetRow && s.col === targetCol));
-            updateSoldierDisplay(aiSoldierCell, aiSoldier);
-            updateSoldierDisplay(targetCell, aiArmy.find(s => s.row === targetRow && s.col === targetCol));
+            // updateSoldierDisplay(aiSoldierCell, aiSoldier);
+            // updateSoldierDisplay(targetCell, aiArmy.find(s => s.row === targetRow && s.col === targetCol));
 
             // Check if the game is over
             if (isGameOver()) {
@@ -562,7 +697,7 @@ function moveAI(aiSoldierCell, aiDirection) {
     }
 }
 
-// move ai soldier to adjacent whith the targetcell
+// move ai soldier to adjacent with the targetcell
 function moveAItoAdjacent(aiSoldierCell, targetCell) {
     const aiSoldierRank = aiSoldierCell.rank;
     const aiSoldier = aiArmy.find(soldier => soldier.rank === aiSoldierRank);
@@ -614,6 +749,7 @@ function moveAItoAdjacent(aiSoldierCell, targetCell) {
 
 // Function to start the battle
 function startGame() {
+    
     userArmy = [];
     aiArmy = [];        
 
@@ -637,6 +773,41 @@ function startGame() {
 
     // Start the player's turn
     playerTurn();
+}
+
+// convert rank to number
+function rankToNumber(rank) {
+    const rankNames = ['병사', '중위', '소령', '중령', '대령', '대장', 'MP', '대통령'];
+     let rankNumber = 0;
+    switch (rank) {
+        case '병사':
+            return rankNumber = 1; 
+            break;          
+        case '중위':
+            return rankNumber = 2;
+            break;
+        case '소령':
+            return rankNumber = 3;
+            break;
+        case '중령':
+            return rankNumber = 4; 
+            break;          
+        case '대령':
+            return rankNumber = 5;
+            break;
+        case '대장':
+            return rankNumber = 6;
+            break;
+        case 'MP':
+            return rankNumber = 7;
+            break;
+        case '대통령':
+            return rankNumber = 8;
+            break;
+        default:
+            return;
+    }
+
 }
 
 // Initialize the game board and soldiers when the page loads

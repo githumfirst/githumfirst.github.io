@@ -4,36 +4,8 @@
 <head>
     <title>Army Battle Game</title>    
     <meta charset="UTF-8"> <!-- Specify character encoding -->
-    <style>
-        /* Add some basic styling for the game board */
-        .board {
-            display: grid;
-            grid-template-columns: repeat(8, 50px);
-            grid-template-rows: repeat(8, 50px);
-        }
-
-        .cell {
-            width: 50px;
-            height: 50px;
-            border: 1px solid black;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Style for the "Thinking..." sign */
-        .thinking-sign {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to the external CSS file -->
+    
 </head>
 <body> <!-- Call the startGame() function when the page loads -->
     <h1>Army Battle Game</h1>
@@ -46,6 +18,15 @@
     <button id="boom-button" onclick="boom()">Boom!</button>
     <!-- The "Thinking..." sign element -->
     <div class="thinking-sign" id="thinkingSign">Thinking...</div>
+
+    <!-- The "Draw" sign element -->
+    <div class="draw-sign" id="drawSign">Draws!</div>
+
+    <!-- The "User Win" sign element -->
+    <div class="user-sign" id="userWinSign">User Wins!</div>
+
+    <!-- The "AI Win" sign element -->
+    <div class="ai-sign" id="aiWinSign">A.I. Wins!</div>
     <script src="game.js"></script>
 </body>
 </html>
