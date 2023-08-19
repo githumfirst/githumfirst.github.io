@@ -22,3 +22,8 @@ The source code will be made available, and it would be appreciated if you could
 * 계급에 따라 승패가 갈립니다.
 * 게임의 재미를 위해, MP는 대통령에게 이기고 다른 모든 계급에게 패한답니다. 
 * MP와 대통령을 잘 사용해야 게임을 승리할 수 있습니다.
+
+* 실행 영상: https://www.youtube.com/watch?v=kwqAdJZCyBo
+* 놀자(플레이하기): https://githumfirst.github.io/
+* 프로젝트 주소: https://githumfirst.github.io/websiteProject01/
+
