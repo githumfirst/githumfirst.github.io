@@ -15,6 +15,10 @@ class AISoldier {
     }
 }
 
+// background music
+// const playButton = document.getElementById('playButton');
+// const backgroundMusic = document.getElementById('backgroundMusic');
+
 // Rank names
 const rankNames = ['병사', '중위', '소령', '중령', '대령', '대장', 'MP', '대통령'];
 
@@ -27,6 +31,7 @@ let selectedSoldier = null;
 
 // Function to create the game board and soldiers for each army
 function createBoard() {
+    console.log('createboard!!');
     const board = document.getElementById('board');
     for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
@@ -41,6 +46,8 @@ function createBoard() {
 }
 
 // Function to place soldiers on the board for each army
+// Modify the placeSoldiers and placeAISoldiers functions like this:
+
 function placeSoldiers(userArmy) {
     for (let i = 0; i < 8; i++) {
         const userArmyCell = document.getElementById(`cell_${7}_${i}`);
@@ -48,49 +55,48 @@ function placeSoldiers(userArmy) {
         userArmyCell.textContent = `User - ${rankNames[userArmy[i].rank - 1]}`;
         userArmyCell.setAttribute('data-army', 'User');
         userArmyCell.setAttribute('data-rank', userArmy[i].rank);
-
+        userArmyCell.classList.add('user-soldier'); // Add a class to distinguish user soldiers
+        
     }
-
-    // Add click listeners for soldier selection
-    addClickListeners();
 }
 
 function placeAISoldiers(aiArmy) {
     for (let i = 0; i < 8; i++) {
         const aiArmyCell = document.getElementById(`cell_${0}_${i}`);
 
-        // Create instances of AISoldier with row and col information
         const aiSoldier = new AISoldier(i + 1, 0, i);
         aiArmy.push(aiSoldier);
 
         aiArmyCell.textContent = `A.I - ${rankNames[aiSoldier.rank - 1]}`;
         aiArmyCell.setAttribute('data-army', 'A.I');
         aiArmyCell.setAttribute('data-rank', aiSoldier.rank);
+        aiArmyCell.classList.add('ai-soldier'); // Add a class to distinguish AI soldiers
     }
 }
 
-// Function to simulate a battle between two soldiers
-// function battle(attacker, defender) {
-//     console.log(attacker.rank);
-//     console.log(defender.rank);
-//     if (attacker.rank === defender.rank) {
-//         attacker.isAlive = false;
-//         defender.isAlive = false;
-//     } else if (attacker.rank === 7 && defender.rank === 8) { // MP defeats 대통령
-//         defender.isAlive = false;
-//     } else if (attacker.rank === 8 && defender.rank === 7) { // 대통령 defeats MP
-//         attacker.isAlive = false;
-//     } else if (attacker.rank > defender.rank) {
-//         defender.isAlive = false;
-//     } else {
-//         attacker.isAlive = false;
-//     }
-// }
 
 function battle(userRank, aiRank) {
     if (userRank == aiRank) {
         showDraw();
+
+        // time delay display thime
+        setTimeout(function() {
+            console.log("This message appears after 2 seconds.");
+            hideDraw();
+            // You can put any code you want to delay here
+        }, 5000); // 2000 milliseconds = 2 seconds
         return 'draw';
+    }
+    // user MP beats ai President
+    if (userRank == 7 && aiRank == 8) {
+        showUserWin();
+        return 'user';
+    }
+
+    // ai MP beats user President
+    if (userRank == 8 && aiRank == 7) {
+        showAiWin();
+        return 'ai';
     }
 
     if (userRank == 7 && aiRank != 8) {
@@ -110,7 +116,7 @@ function battle(userRank, aiRank) {
 
     if (userRank < aiRank) {
         showAiWin();
-        return 'user';
+        return 'ai';
     }
 }
 
@@ -142,6 +148,11 @@ function showAiWin() {
     aiWinSign.style.display = 'block';
 }
 
+function showDoAgain() {
+    const doAgain = document.getElementById('doAgain');
+    doAgain.style.display = 'block';
+}
+
 // Function to hide the "win/loss..." sign
 function hideDraw() {
     const drawSign = document.getElementById('drawSign');
@@ -156,6 +167,11 @@ function hideUserWin() {
 function hideAiWin() {
     const aiWinSign = document.getElementById('aiWinSign');
     aiWinSign.style.display = 'none';
+}
+
+function hideDoAgain() {
+    const doAgain = document.getElementById('doAgain');
+    doAgain.style.display = 'none';
 }
 
 // Function to handle soldier selection
@@ -201,22 +217,6 @@ function removeClickListeners() {
     }
 }
 
-// Function to check if two soldiers are adjacent
-// function areAdjacent(cell1, cell2) {
-//     const row1 = parseInt(cell1.id.split('_')[1]);
-//     const col1 = parseInt(cell1.id.split('_')[2]);
-//     const row2 = parseInt(cell2.id.split('_')[1]);
-//     const col2 = parseInt(cell2.id.split('_')[2]);
-
-//     console.log("Cell 1:", row1, col1);
-//     console.log("Cell 2:", row2, col2);
-
-//     // Check if the two soldiers are in the same row and have adjacent columns or are in the same column and have adjacent rows
-//     const adjacent = (row1 === row2 && Math.abs(col1 - col2) === 1) || (col1 === col2 && Math.abs(row1 - row2) === 1);
-//     console.log("Are adjacent?", adjacent);
-//     return adjacent;
-// }
-
 function findAdjacentAiSoldiers(aiSoldiers, selectedSoldier) {
     const selectedId = selectedSoldier.id;
     const selectedCoords = selectedId.match(/cell_(\d+)_(\d+)/).slice(1, 3).map(Number);
@@ -237,141 +237,176 @@ function findAdjacentAiSoldiers(aiSoldiers, selectedSoldier) {
 
 // Function to handle the attack
 function boom() {
-    console.log(selectedSoldier);
-    if (!selectedSoldier) {
-        alert("Please select a soldier before attacking.");
-        return;
-    }
-
-    // Find the opponent's soldiers
-    const opponentCells = document.getElementsByClassName('cell');
-    const aiSoldiers = [];
-    for (let cell of opponentCells) {
-        if (cell.textContent.includes("A.I") && cell.textContent !== '') {
-            aiSoldiers.push(cell);
+    try {   
+        console.log('who calls boom function'); 
+        if (!selectedSoldier) {
+            alert("Please select a soldier before attacking.");
+            return;
         }
-    }
 
-    // Find the selected user soldier    
-    const soldierCell = selectedSoldier;
+        // Find the opponent's soldiers
+        const opponentCells = document.getElementsByClassName('cell');
+        const aiSoldiers = [];
+        for (let cell of opponentCells) {
+            if (cell.textContent.includes("A.I") && cell.textContent !== '') {
+                aiSoldiers.push(cell);
+            }
+        }
 
-    // Get the current row and column of the soldier
-    const row = parseInt(soldierCell.id.split('_')[1]);
-    const col = parseInt(soldierCell.id.split('_')[2]);
+        // Find the selected user soldier    
+        const soldierCell = selectedSoldier;
 
-    // Get the Army and Rank of User
-    const userSoldierContent = soldierCell.innerHTML;
-    const army = userSoldierContent.split('-')[0];
-    const cleanArmy = army.replace(" ", "");
-    const userSoldierRank = userSoldierContent.split('-')[1];
-    const cleanRank = userSoldierRank.replace(" ", "");
+        // Get the current row and column of the soldier
+        const row = parseInt(soldierCell.id.split('_')[1]);
+        const col = parseInt(soldierCell.id.split('_')[2]);
 
-    // convert rank to Number
-    let userRankNumber = 0;
-    userRankNumber = rankToNumber(cleanRank);
-    
-    // build UserArmy for battle function
-   
-    // const selectedUserSoldier = userArmy.find(soldier => soldier.rank === cleanRank);
-    let fightingUserSoldier = userArmy.find(soldier => soldier.rank === userRankNumber);
-    
-    // const selectedUserSoldier = userArmy.find(soldier => soldier.rank === selectedUserSoldierRank);
+        // Get the Army and Rank of User
+        const userSoldierContent = soldierCell.innerHTML;
+        const army = userSoldierContent.split('-')[0];
+        const cleanArmy = army.replace(" ", "");
+        const userSoldierRank = userSoldierContent.split('-')[1];
+        const cleanRank = userSoldierRank.replace(" ", "");
 
-    // Find adjacent AI soldiers
-    // const adjacentAISoldiers = aiSoldiers.filter(aiSoldier => areAdjacent(fightingUserSoldier, aiSoldier));
-    const adjacentAISoldiers = findAdjacentAiSoldiers(aiSoldiers, selectedSoldier);
-
-    if (adjacentAISoldiers.length === 0) {
-        alert("Cannot attack. Your soldier is not in contact with any opponent's soldier.");
-        return;
-    } else if (adjacentAISoldiers.length === 1) {
-        // Only one adjacent AI soldier, attack without asking
-        const aiSoldierCell = adjacentAISoldiers[0];
-
-        // Get rank and army of AI
-        const aiSoldierContent = aiSoldierCell.innerHTML;
-        const aiArmyID = aiSoldierContent.split('-')[0];
-        const cleanAiArmy = aiArmyID.replace(" ", "");
-        const aiRank = aiSoldierContent.split('-')[1];
-        const cleanAiRank = aiRank.replace(" ", "");
-        
         // convert rank to Number
-        let aiRankNumber = 0;
-        aiRankNumber = rankToNumber(cleanAiRank);
-        // const aiSoldierRank = parseInt(aiSoldierCell.getAttribute('data-rank'));
-        const fightingAiSoldier = aiArmy.find(soldier => soldier.rank === aiRankNumber);
+        let userRankNumber = 0;
+        userRankNumber = rankToNumber(cleanRank);
+    
+        // const selectedUserSoldier = userArmy.find(soldier => soldier.rank === cleanRank);
+        let fightingUserSoldier = userArmy.find(soldier => soldier.rank === userRankNumber);
         
-        
-        let result = battle(userRankNumber, aiRankNumber);        
-              
-        // winner is user, then remove ai soldier
-        if (result == 'user') {
-            aiSoldierCell.style.backgroundColor = '';
-            aiSoldierCell.innerHTML = '';
-            aiSoldierCell = null;
+        // const selectedUserSoldier = userArmy.find(soldier => soldier.rank === selectedUserSoldierRank);
 
-            hideUserWin();
-        }
+        // Find adjacent AI soldiers
+        // const adjacentAISoldiers = aiSoldiers.filter(aiSoldier => areAdjacent(fightingUserSoldier, aiSoldier));
+        const adjacentAISoldiers = findAdjacentAiSoldiers(aiSoldiers, selectedSoldier);
 
-        // winner is A.I, then remove User soldier
-        if (result == 'ai') {
-            soldierCell.style.backgroundColor = '';
-            soldierCell.innerHTML = '';
-            soldierCell = null;
+        if (adjacentAISoldiers.length === 0) {
+            alert("Cannot attack. Your soldier is not in contact with any opponent's soldier.");
+            return;
+        } else if (adjacentAISoldiers.length === 1) {
+            // Only one adjacent AI soldier, attack without asking
+            const aiSoldierCell = adjacentAISoldiers[0];
 
-            hideAiWin();
-        }
-
-        // winner is A.I, then remove User soldier
-        if (result == 'draw') {
+            // Get rank and army of AI
+            const aiSoldierContent = aiSoldierCell.innerHTML;
+            const aiArmyID = aiSoldierContent.split('-')[0];
+            const cleanAiArmy = aiArmyID.replace(" ", "");
+            const aiRank = aiSoldierContent.split('-')[1];
+            const cleanAiRank = aiRank.replace(" ", "");
             
-            hideDraw();
+            // convert rank to Number
+            let aiRankNumber = 0;
+            aiRankNumber = rankToNumber(cleanAiRank);
+            // const aiSoldierRank = parseInt(aiSoldierCell.getAttribute('data-rank'));
+            const fightingAiSoldier = aiArmy.find(soldier => soldier.rank === aiRankNumber);
+            
+            
+            let result = battle(userRankNumber, aiRankNumber);        
+                
+            // winner is user, then remove ai soldier
+            if (result == 'user') {
+                aiSoldierCell.style.backgroundColor = '';
+                aiSoldierCell.innerHTML = '';
+                aiSoldierCell.classList.remove('ai-soldier'); // remove a class to distinguish AI soldiers
+                
+                // time delay display thime
+                setTimeout(function() {
+                    console.log("This message appears after 2 seconds.");
+                    hideUserWin();
+                    // You can put any code you want to delay here
+                }, 3000); // 2000 milliseconds = 2 seconds
+                
+
+                return;
+            }
+
+            // winner is A.I, then remove User soldier
+            if (result == 'ai') {
+                soldierCell.style.backgroundColor = '';
+                soldierCell.classList.remove('user-soldier'); // remove a class to distinguish user soldiers
+                soldierCell.innerHTML = '';
+                
+                // time delay display thime
+                setTimeout(function() {
+                    console.log("This message appears after 2 seconds.");
+                    hideAiWin();
+                    // You can put any code you want to delay here
+                }, 3000); // 2000 milliseconds = 2 seconds
+            
+                return;
+            }
+
+            // winner is A.I, then remove User soldier
+            if (result == 'draw') {
+                
+                setTimeout(function() {
+                    console.log("This message appears after 2 seconds.");
+                    hideDraw();
+                    // You can put any code you want to delay here
+                }, 3000); // 2000 milliseconds = 2 seconds
+                
+                return;
+            }
+            
+            return;
+
+            // Update the soldier display on the board after the battle
+            // updateSoldierDisplay(selectedSoldier, selectedUserSoldier);
+            // updateSoldierDisplay(aiSoldierCell, aiSoldier);
+        } else {
+            // Multiple adjacent AI soldiers, ask the user which one to attack
+            const attackOptions = adjacentAISoldiers.map(aiSoldierCell => {
+                const aiSoldierRank = parseInt(aiSoldierCell.getAttribute('data-rank'));
+                const aiSoldier = aiArmy.find(soldier => soldier.rank === aiSoldierRank);
+                return `${aiSoldierCell.textContent} (Rank: ${rankNames[aiSoldier.rank - 1]})`;
+            });
+
+            const selectedOption = prompt(`Select an opponent soldier to attack:\n\n${attackOptions.join('\n')}`);
+
+            if (selectedOption === null) {
+                // User cancelled the prompt
+                return;
+            }
+
+            const selectedAIIndex = attackOptions.findIndex(option => option === selectedOption);
+            if (selectedAIIndex === -1) {
+                alert("Invalid selection.");
+                return;
+            }
+
+            const selectedAISoldierCell = adjacentAISoldiers[selectedAIIndex];
+            const selectedAISoldierRank = parseInt(selectedAISoldierCell.getAttribute('data-rank'));
+            const selectedAISoldier = aiArmy.find(soldier => soldier.rank === selectedAISoldierRank);
+            console.log(selectedAISoldier);
+
+            battle(selectedUserSoldier, selectedAISoldier);
+
+            // Update the soldier display on the board after the battle
+            updateSoldierDisplay(selectedSoldier, selectedUserSoldier);
+            updateSoldierDisplay(selectedAISoldierCell, selectedAISoldier);
+        }
+
+        // Check if the game is over
+        if (isGameOver()) {
+            endGame();
+        } else {
+            // Allow the player to move again (player's turn)
+            playerTurn();
+            return;  // it does not finish with return !!!
         }
         
+        hideAiWin();
+        hideDraw();
+        hideUserWin();
+    }   catch (error) {
+        showDoAgain();
 
-        // Update the soldier display on the board after the battle
-        // updateSoldierDisplay(selectedSoldier, selectedUserSoldier);
-        // updateSoldierDisplay(aiSoldierCell, aiSoldier);
-    } else {
-        // Multiple adjacent AI soldiers, ask the user which one to attack
-        const attackOptions = adjacentAISoldiers.map(aiSoldierCell => {
-            const aiSoldierRank = parseInt(aiSoldierCell.getAttribute('data-rank'));
-            const aiSoldier = aiArmy.find(soldier => soldier.rank === aiSoldierRank);
-            return `${aiSoldierCell.textContent} (Rank: ${rankNames[aiSoldier.rank - 1]})`;
-        });
-
-        const selectedOption = prompt(`Select an opponent soldier to attack:\n\n${attackOptions.join('\n')}`);
-
-        if (selectedOption === null) {
-            // User cancelled the prompt
-            return;
-        }
-
-        const selectedAIIndex = attackOptions.findIndex(option => option === selectedOption);
-        if (selectedAIIndex === -1) {
-            alert("Invalid selection.");
-            return;
-        }
-
-        const selectedAISoldierCell = adjacentAISoldiers[selectedAIIndex];
-        const selectedAISoldierRank = parseInt(selectedAISoldierCell.getAttribute('data-rank'));
-        const selectedAISoldier = aiArmy.find(soldier => soldier.rank === selectedAISoldierRank);
-        console.log(selectedAISoldier);
-
-        battle(selectedUserSoldier, selectedAISoldier);
-
-        // Update the soldier display on the board after the battle
-        updateSoldierDisplay(selectedSoldier, selectedUserSoldier);
-        updateSoldierDisplay(selectedAISoldierCell, selectedAISoldier);
-    }
-
-    // Check if the game is over
-    if (isGameOver()) {
-        endGame();
-    } else {
-        // Allow the player to move again (player's turn)
-        playerTurn();
-        return;
+        // time delay display thime
+        setTimeout(function() {
+            console.log("This message appears after 2 seconds.");
+            hideDoAgain();
+            // You can put any code you want to delay here
+        }, 3000); // 2000 milliseconds = 2 seconds
     }    
 }
 
@@ -432,15 +467,19 @@ function move(direction) {
         if (targetCell.textContent === '') {
             // Move the soldier to the new cell
             targetCell.textContent = soldierCell.textContent;
+           
             soldierCell.textContent = '';
-
+            
             // Clear the selection (remove orange color) from the previously selected soldier
             selectedSoldier.style.backgroundColor = '';
+            selectedSoldier.classList.remove('user-soldier'); // Add a class to distinguish user soldiers
+
 
             // Update the selectedSoldier to the new cell
             selectedSoldier = targetCell;
 
             // Mark the newly moved soldier as selected with an orange color
+            selectedSoldier.classList.add('user-soldier'); // Add a class to distinguish user soldiers
             selectedSoldier.style.backgroundColor = 'orange';
 
             // Update currentPlayer to 2 (computer's turn) after the player makes a move
@@ -463,6 +502,7 @@ function move(direction) {
     } else {
         alert("Cannot move. The target cell is outside the board boundaries.");
     }
+    playUserSound();
 }
 
 
@@ -483,7 +523,16 @@ function aiTurn() {
     // Introduce a delay to simulate "thinking" for the computer (1 second)
     setTimeout(() => {
         // Find all the computer's soldiers
-        const aiSoldiers = aiArmy.filter(soldier => soldier.isAlive);
+        // const aiSoldiers = aiArmy.filter(soldier => soldier.isAlive);
+        // Find the opponent's soldiers
+        const opponentCells = document.getElementsByClassName('cell');
+        const aiSoldiers = [];
+        for (let cell of opponentCells) {
+            console.log("it stops here");
+            if (cell.textContent.includes("A.I") && cell.textContent !== '') {
+                aiSoldiers.push(cell);
+            }
+        }
 
         // Randomly choose a soldier to move
         const randomIndex = Math.floor(Math.random() * aiSoldiers.length);
@@ -529,14 +578,9 @@ function playerTurn() {
     // Enable the boom button during the player's turn
     addBoomButtonListener();
 
-    // Remove click listeners from soldiers during the player's turn
-    //removeClickListeners();
-
     // Add click listeners back after the player makes a move
     addClickListeners();
 
-    // Call startNextTurn to initiate the opponent's turn after the player's turn
-    // startNextTurn();
 }
 
 
@@ -585,11 +629,29 @@ function endGame(winner) {
 // Function to handle soldier movement
 function moveAI(aiSoldierCell, aiDirection) {
 
-    const aiSoldierRank = aiSoldierCell.rank;
-    const aiSoldier = aiArmy.find(aiSoldier => aiSoldier.rank === aiSoldierRank);
+    // Find the selected user soldier    
+    const toMoveAiSoldierCell = aiSoldierCell;
 
-    let targetRow = aiSoldier.row;
-    let targetCol = aiSoldier.col;
+    // Get the current row and column of the soldier
+    let targetRow = parseInt(toMoveAiSoldierCell.id.split('_')[1]);
+    let targetCol = parseInt(toMoveAiSoldierCell.id.split('_')[2]);
+
+    // Get the Army and Rank of User
+    const aiSoldierContent = toMoveAiSoldierCell.innerHTML;
+    const aiID = aiSoldierContent.split('-')[0];
+    const cleanAiArmy = aiID.replace(" ", "");
+    const aiSoldierRank = aiSoldierContent.split('-')[1];
+    const aicleanRank = aiSoldierRank.replace(" ", "");
+
+    // convert rank to Number
+    let aiRankNumber = 0;
+    aiRankNumber = rankToNumber(aicleanRank);
+
+    // const aiSoldierRank = aiSoldierCell.rank;
+    const aiSoldier =  aiArmy.find(aiSoldier => aiSoldier.rank === aiRankNumber);
+
+    // let targetRow = aiSoldier.row;
+    // let targetCol = aiSoldier.col;
 
     // data matching
     const currentCell = document.getElementById(`cell_${targetRow}_${targetCol}`);
@@ -615,14 +677,12 @@ function moveAI(aiSoldierCell, aiDirection) {
     
     // Check targetCell is empty, yes -> go to targetCell
     if (targetCell.textContent === '') {
-        // Update soldier's position
-        // aiSoldier.row = targetRow;
-        // aiSoldier.col = targetCol;
 
-        // Move the soldier to the new cell
         targetCell.textContent = currentCell.textContent;
+        targetCell.classList.add('ai-soldier'); // Add a class to distinguish AI soldiers
+
         currentCell.textContent = '';
-        // aiSoldierCell.style.backgroundColor = 'orange'; // Mark the newly moved soldier as selected with an orange color
+        currentCell.classList.remove('ai-soldier'); // Add a class to distinguish AI soldiers
 
         // Update currentPlayer to 1 (user's turn) after the player makes a move
         currentPlayer = 1;
@@ -673,8 +733,7 @@ function moveAI(aiSoldierCell, aiDirection) {
             if (adjacentCells.length > 0) {
                 const randomAdjacentCell = adjacentCells[Math.floor(Math.random() * adjacentCells.length)];
 
-                moveAItoAdjacent(aiSoldierCell, randomAdjacentCell);
-                // moveAI(aiSoldierCell, randomAdjacentCell); // Move the current soldier to an empty adjacent cell
+                moveAItoAdjacent(aiSoldierCell, randomAdjacentCell);                
             } else {
                 // If no empty adjacent cell is available, end the turn
                 aiTurn();
@@ -695,12 +754,37 @@ function moveAI(aiSoldierCell, aiDirection) {
             }
         }
     }
+    playUserSound();
 }
 
 // move ai soldier to adjacent with the targetcell
 function moveAItoAdjacent(aiSoldierCell, targetCell) {
+    // *************************
+    // Find the selected user soldier    
+    const adjacentAiSoldierCell = aiSoldierCell;
+
+    // Get the current row and column of the soldier
+    let adjacentTargetRow = parseInt(adjacentAiSoldierCell.id.split('_')[1]);
+    let adjacentTargetCol = parseInt(adjacentAiSoldierCell.id.split('_')[2]);
+
+    // Get the Army and Rank of User
+    const adjacentAiSoldierContent = adjacentAiSoldierCell.innerHTML;
+    const adjacentAiID = adjacentAiSoldierContent.split('-')[0];
+    const adjacentCleanAiArmy = adjacentAiID.replace(" ", "");
+    const adjacentAiSoldierCellRank = adjacentAiSoldierContent.split('-')[1];
+    const adjacentAicleanRank = adjacentAiSoldierCellRank.replace(" ", "");
+
+    // convert rank to Number
+    let adjacentAiRankNumber = 0;
+    adjacentAiRankNumber = rankToNumber(adjacentAicleanRank);
+
+    // const aiSoldierRank = aiSoldierCell.rank;
+    const aiSoldier =  aiArmy.find(aiSoldier => aiSoldier.rank === adjacentAiRankNumber);
+
+    // **************************
+    // 
     const aiSoldierRank = aiSoldierCell.rank;
-    const aiSoldier = aiArmy.find(soldier => soldier.rank === aiSoldierRank);
+    // const aiSoldier = aiArmy.find(soldier => soldier.rank === aiSoldierRank);
 
     // Get the current row and column of the AI soldier
     const currentRow = aiSoldier.row;
@@ -719,13 +803,15 @@ function moveAItoAdjacent(aiSoldierCell, targetCell) {
 
     // Update the AI soldier's display on the board
     targetCell.textContent = currentCell.textContent;
+    targetCell.classList.add('ai-soldier'); // Add a class to distinguish AI soldiers
+
     currentCell.textContent = '';
+    currentCell.classList.remove('ai-soldier'); // Add a class to distinguish AI soldiers
+    
 
     // Clear the selection (remove orange color) from the previously selected AI soldier
     currentCell.style.backgroundColor = '';
-
-    // Mark the newly moved AI soldier as selected with an orange color
-    // targetCell.style.backgroundColor = 'orange';
+    currentCell.classList.remove('ai-soldier'); // Add a class to distinguish AI soldiers
 
     // Update currentPlayer to 1 (user's turn) after the AI makes a move
     currentPlayer = 1;
@@ -758,11 +844,6 @@ function startGame() {
         userArmy.push(new Soldier(i + 1));
         // aiArmy.push(new Soldier(i + 1));
     }
-
-    // Perform the battle between the two armies
-    // for (let i = 0; i < 8; i++) {
-    //     battle(userArmy[i], aiArmy[i]);
-    // }
 
     // Update the game board based on the battle results
     placeSoldiers(userArmy);
@@ -810,5 +891,16 @@ function rankToNumber(rank) {
 
 }
 
+// new game
+function refreshPage() {
+    location.reload();
+}
+
+function playUserSound() {
+    const userSound = document.getElementById('userSound');
+    userSound.play(); // This plays the audio
+}
+
 // Initialize the game board and soldiers when the page loads
 createBoard();
+

@@ -1,32 +1,64 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Army Battle Game</title>    
+    <title>Army Battle Game</title>
     <meta charset="UTF-8"> <!-- Specify character encoding -->
     <link rel="stylesheet" href="styles.css"> <!-- Link to the external CSS file -->
-    
 </head>
-<body> <!-- Call the startGame() function when the page loads -->
-    <h1>Army Battle Game</h1>
+<body>     
+       
+    <div class="title-container">
+        <h1> Army Battle Game  <br>추억의 병정놀이 게임</h1>
+       
+    </div>
+
+
     <div class="board" id="board"></div>
-    <button onclick="startGame()">Start Battle</button>
-    <button onclick="move('forward')">Move Forward</button>
-    <button onclick="move('backward')">Move Backward</button>
-    <button onclick="move('left')">Move Left</button>
-    <button onclick="move('right')">Move Right</button>
-    <button id="boom-button" onclick="boom()">Boom!</button>
+    <!-- <button onclick="startGame()">Start Battle</button> -->    
+
+    <!-- Container for directional buttons -->
+    <div class="direction-buttons">
+        <div>
+            <button onclick="move('forward')">Forward-앞으로!</button>
+        </div>
+        <div>
+            <button onclick="move('left')">Left-왼쪽!</button>
+            <button onclick="move('right')">Right-오른쪽!</button>
+        </div>
+        <div>
+            <button onclick="move('backward')">Backward-뒤!</button>
+        </div>
+
+        <div> 
+            <button id="boom-button" onclick="boom()">Boom - 공격!</button> 
+        </div>
+
+        <!-- Refresh button -->
+        <div class="refresh-button">
+            <button onclick="refreshPage()">New Game - 다시하기</button>
+        </div>
+
+    </div>
+  
     <!-- The "Thinking..." sign element -->
-    <div class="thinking-sign" id="thinkingSign">Thinking...</div>
+    <div class="thinking-sign" id="thinkingSign">Thinking...인공지능 생각중...</div>
 
     <!-- The "Draw" sign element -->
-    <div class="draw-sign" id="drawSign">Draws!</div>
+    <div class="draw-sign" id="drawSign">Draws! 계급이 같아요. 비김!</div>
 
     <!-- The "User Win" sign element -->
-    <div class="user-sign" id="userWinSign">User Wins!</div>
+    <div class="user-sign" id="userWinSign">User Wins! 당신 군인의 승리!</div>
 
     <!-- The "AI Win" sign element -->
-    <div class="ai-sign" id="aiWinSign">A.I. Wins!</div>
+    <div class="ai-sign" id="aiWinSign">A.I. Wins! 인공지능 군인 승리!</div>
+
+    <!-- Not here sign element -->
+    <div class="doAgain-sign" id="doAgain">Not Here! 다른곳에서 시도하세요!</div>
+
+    <!-- user soldier stepping sound -->
+    <audio id="userSound" src="Wooden Bat Hits Baseball Run.mp3"></audio>
+    
     <script src="game.js"></script>
+
 </body>
 </html>
